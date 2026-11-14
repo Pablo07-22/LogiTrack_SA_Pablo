@@ -24,8 +24,8 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(name = "contrasena", nullable = false, length = 255)
-    private String contraseña;
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

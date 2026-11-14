@@ -13,7 +13,7 @@ public record UsuarioDtoRequest(
 
         @NotBlank(message = "La contraseña no puede estar vacía")
         @Size(min = 8, max = 100, message = "La contraseña debe tener entre 8 y 100 caracteres")
-        String contrasena,
+        String password,
 
         @NotNull(message = "El rol no puede estar nulo")
         Usuario.Rol rol,
