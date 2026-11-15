@@ -4,6 +4,7 @@ import com.Proyecto.LogiTrack.SA.Model.Movimiento;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public record MovimientoDtoRequest(
 
         @NotNull(message = "La lista de detalles no puede estar nula")
         @Size(min = 1, message = "El movimiento debe contener al menos un producto")
+        @Valid
         List<DetalleMovimientoDtoRequest> detalles
 
 ) {}

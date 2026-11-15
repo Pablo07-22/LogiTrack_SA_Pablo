@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 
     // Cuando no se encuentra un registro: 404
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerNotFound(EntityNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handlerNotFound(EntityNotFoundException ex){
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(
@@ -33,12 +33,9 @@ public class GlobalExceptionHandler {
 
     // Errores de validación de los DTO: 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationErrors(
-            MethodArgumentNotValidException ex
-    ) {
+    public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex){
 
         Map<String, Object> response = new HashMap<>();
-
         response.put("timestamp", LocalDateTime.now());
         response.put("status", HttpStatus.BAD_REQUEST.value());
         response.put("errorCode", "VALIDATION_FAILED");
@@ -56,9 +53,7 @@ public class GlobalExceptionHandler {
 
     // Errores de reglas de negocio: 400
     @ExceptionHandler(BussinesRuleException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessRuleException(
-            BussinesRuleException ex
-    ) {
+    public ResponseEntity<ErrorResponse> handleBusinessRuleException(BussinesRuleException ex){
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(
@@ -71,9 +66,7 @@ public class GlobalExceptionHandler {
 
     // Errores controlados relacionados con reglas de base de datos: 400
     @ExceptionHandler(DatabaseRuleException.class)
-    public ResponseEntity<ErrorResponse> handleDatabaseRuleException(
-            DatabaseRuleException ex
-    ) {
+    public ResponseEntity<ErrorResponse> handleDatabaseRuleException(DatabaseRuleException ex){
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(
@@ -86,9 +79,7 @@ public class GlobalExceptionHandler {
 
     // Restricciones de MySQL: UNIQUE, FOREIGN KEY, CHECK, etc.: 409
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
-            DataIntegrityViolationException ex
-    ) {
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex){
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(
@@ -101,9 +92,8 @@ public class GlobalExceptionHandler {
 
     // Cuando el JSON enviado es incorrecto o está incompleto: 400
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleParsingErrors(
-            HttpMessageNotReadableException ex
-    ) {
+    public ResponseEntity<ErrorResponse> handleParsingErrors(HttpMessageNotReadableException ex
+    ){
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(
@@ -116,9 +106,7 @@ public class GlobalExceptionHandler {
 
     // Cuando se solicita una ruta inexistente: 404
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(
-            NoHandlerFoundException ex
-    ) {
+    public ResponseEntity<ErrorResponse> handleNotFound(NoHandlerFoundException ex){
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(
@@ -131,7 +119,7 @@ public class GlobalExceptionHandler {
 
     // Cualquier otro error no controlado: 500
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericErrors(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleGenericErrors(Exception ex){
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse(
