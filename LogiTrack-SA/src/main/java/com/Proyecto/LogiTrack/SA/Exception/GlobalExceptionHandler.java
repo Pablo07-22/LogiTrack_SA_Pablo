@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.LocalDateTime;
@@ -128,5 +129,21 @@ public class GlobalExceptionHandler {
                         "Error interno del servidor.",
                         "INTERNAL_SERVER_ERROR"
                 ));
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(
+            ResponseStatusException ex) {
+
+        int status = ex.getStatusCode().value();
+
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                status,
+                ex.getReason(),
+                "HTTP_ERROR"
+        );
+
+        return ResponseEntity.status(status).body(error);
     }
 }

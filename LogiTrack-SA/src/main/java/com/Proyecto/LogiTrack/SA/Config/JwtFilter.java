@@ -1,88 +1,72 @@
+
 package com.Proyecto.LogiTrack.SA.Config;
 
-import jakarta.servlet.*;
+import com.Proyecto.LogiTrack.SA.Model.Usuario;
+import com.Proyecto.LogiTrack.SA.Repository.UsuarioRepository;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
-@Component// Le digo a Spring que este filtro es un componente manejado por el contenedor
+@Component
 @RequiredArgsConstructor
-public class JwtFilter extends GenericFilter {
-    /*
-     * Inyecto mi JwtService.
-     * Este servicio es el que sabe validar el token.
-     */
+public class JwtFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
+    private final UsuarioRepository usuarioRepository;
 
-    /*
-     * Este método se ejecuta en CADA petición que llega al servidor.
-     * Aquí es donde revisamos si el request trae un token válido.
-     */
     @Override
-    public void doFilter(ServletRequest request,
-                         ServletResponse response,
-                         FilterChain chain)
-            throws IOException, ServletException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain)
+            throws ServletException, IOException {
 
-        // Convierto el request genérico en HttpServletRequest
-        HttpServletRequest http = (HttpServletRequest) request;
+        String header = request.getHeader("Authorization");
 
-        // Obtengo el header Authorization
-        String header = http.getHeader("Authorization");
-
-
-        /*
-         * Verifico:
-         * 1) Que el header exista
-         * 2) Que empiece con "Bearer "
-         */
-        //Bearer Token
         if (header != null && header.startsWith("Bearer ")) {
 
-            // Quito la palabra "Bearer " y me quedo solo con el token
             String token = header.substring(7);
-
-            // Valido el token usando mi servicio
             String username = jwtService.validateToken(token);
 
-            /*
-             * Si el username no es null significa que:
-             * - La firma es válida
-             * - El token no está vencido
-             */
-            if (username != null) {
-                /*
-                 * Creo un objeto de autenticación.
-                 * Aquí estoy diciendo:
-                 * "Este usuario ya está autenticado"
-                 *
-                 * No paso contraseña porque en JWT ya no la necesito.
-                 * Tampoco paso roles todavía (por eso uso lista vacía).
-                 */
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                username,
-                                null,
-                                //En vez de lista vacía se pasan los respectivos roles.
-                                Collections.emptyList()
-                        );
-                /*
-                 * Aquí es donde realmente le digo a Spring Security:
-                 * "Este usuario está autenticado en esta petición"
-                 */
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            if (username != null &&
+                    SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                List<Usuario> usuarios =
+                        usuarioRepository.findByUsername(username);
+
+                if (!usuarios.isEmpty()) {
+
+                    Usuario usuario = usuarios.get(0);
+
+                    if (usuario.getEstado() == Usuario.Estado.ACTIVO) {
+
+                        String rol = "ROLE_" + usuario.getRol().name();
+
+                        UsernamePasswordAuthenticationToken auth =
+                                new UsernamePasswordAuthenticationToken(
+                                        usuario.getUsername(),
+                                        null,
+                                        List.of(new SimpleGrantedAuthority(rol))
+                                );
+
+                        SecurityContextHolder.getContext()
+                                .setAuthentication(auth);
+                    }
+                }
             }
         }
-        /*
-         * Muy importante:
-         * Siempre debo continuar la cadena de filtros.
-         * Si no llamo a chain.doFilter, la petición se queda bloqueada.
-         */
+
+        // La petición siempre debe continuar por la cadena de filtros.
         chain.doFilter(request, response);
     }
 }

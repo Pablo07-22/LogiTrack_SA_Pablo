@@ -39,10 +39,4 @@ public class Producto {
     @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
 
-    @PrePersist
-    public void antesDeGuardar() {
-        if (fechaCreacion == null) {
-            fechaCreacion = LocalDateTime.now();
-        }
-    }
 }

@@ -1,5 +1,7 @@
 package com.Proyecto.LogiTrack.SA.Service.Impl;
 
+import com.Proyecto.LogiTrack.SA.Auth.RegistroRequest;
+import com.Proyecto.LogiTrack.SA.Exception.BussinesRuleException;
 import com.Proyecto.LogiTrack.SA.Exception.DatabaseRuleException;
 import com.Proyecto.LogiTrack.SA.Mapper.UsuarioMapper;
 import com.Proyecto.LogiTrack.SA.Model.Usuario;
@@ -81,4 +83,82 @@ public class UsuarioServiceImpl implements UsuarioService {
     public List<UsuarioDtoResponse> buscarEstado(Usuario.Estado estado){
         return usuarioRepository.findByEstado(estado).stream().map(usuarioMapper::entityToDto).toList();
     }
+
+
+    @Override
+    public UsuarioDtoResponse registrarSolicitud(RegistroRequest dto) {
+
+        if (usuarioRepository.existsByUsername(dto.username())) {
+            throw new BussinesRuleException(
+                    "Este username ya se encuentra registrado"
+            );
+        }
+
+        Usuario usuario = new Usuario();
+
+        usuario.setUsername(dto.username());
+        usuario.setPassword(
+                passwordEncoder.encode(dto.password())
+        );
+
+        // Nunca se permite que el registro público elija el rol.
+        usuario.setRol(Usuario.Rol.EMPLEADO);
+
+        // Todo nuevo registro queda pendiente.
+        usuario.setEstado(Usuario.Estado.PENDIENTE);
+
+        Usuario usuarioGuardado = usuarioRepository.save(usuario);
+
+        return usuarioMapper.entityToDto(usuarioGuardado);
+    }
+
+    @Override
+    public List<UsuarioDtoResponse> listarPendientes() {
+
+        return usuarioRepository.findByEstado(Usuario.Estado.PENDIENTE)
+                .stream()
+                .map(usuarioMapper::entityToDto)
+                .toList();
+    }
+
+    @Override
+    public UsuarioDtoResponse aprobarSolicitud(Long id) {
+
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No existe el usuario solicitado"
+                ));
+
+        if (usuario.getEstado() != Usuario.Estado.PENDIENTE) {
+            throw new BussinesRuleException(
+                    "El usuario no tiene una solicitud pendiente"
+            );
+        }
+
+        // El administrador solo puede aprobarlo como empleado.
+        usuario.setRol(Usuario.Rol.EMPLEADO);
+        usuario.setEstado(Usuario.Estado.ACTIVO);
+
+        return usuarioMapper.entityToDto(
+                usuarioRepository.save(usuario)
+        );
+    }
+
+    @Override
+    public void rechazarSolicitud(Long id) {
+
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No existe el usuario solicitado"
+                ));
+
+        if (usuario.getEstado() != Usuario.Estado.PENDIENTE) {
+            throw new BussinesRuleException(
+                    "Solo se pueden rechazar solicitudes pendientes"
+            );
+        }
+
+        usuarioRepository.delete(usuario);
+    }
+
 }

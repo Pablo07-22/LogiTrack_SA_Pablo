@@ -59,4 +59,23 @@ public class UsuarioController {
         usuarioService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/solicitudes/pendientes")
+    public ResponseEntity<List<UsuarioDtoResponse>> listarPendientes() {
+        return ResponseEntity.ok(usuarioService.listarPendientes());
+    }
+
+    @PutMapping("/{id}/aprobar")
+    public ResponseEntity<UsuarioDtoResponse> aprobarSolicitud(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(usuarioService.aprobarSolicitud(id));
+    }
+
+    @DeleteMapping("/{id}/rechazar")
+    public ResponseEntity<Void> rechazarSolicitud(
+            @PathVariable Long id) {
+        usuarioService.rechazarSolicitud(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }
