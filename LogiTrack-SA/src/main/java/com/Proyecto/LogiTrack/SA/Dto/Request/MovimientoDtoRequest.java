@@ -9,10 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
-@Schema(
-        name = "MovimientoDtoRequest",
-        description = "Datos de un movimiento de entrada, salida o transferencia de inventario."
-)
+@Schema(name = "MovimientoDtoRequest", description = "Datos de un movimiento de entrada, salida o transferencia de inventario.")
 public record MovimientoDtoRequest(
 
         @Schema(description = "Tipo de movimiento que se desea registrar", example = "ENTRADA", requiredMode = Schema.RequiredMode.REQUIRED)

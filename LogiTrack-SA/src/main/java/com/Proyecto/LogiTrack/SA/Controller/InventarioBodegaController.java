@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/api/inventario-bodega")
 @RequiredArgsConstructor
 @Tag(name = "Inventario por bodega", description = "Gestión y consulta de existencias por bodega y producto")
-@SecurityRequirement(name = "bearerAuth")
 public class InventarioBodegaController {
 
     private final InventarioBodegaService inventarioBodegaService;

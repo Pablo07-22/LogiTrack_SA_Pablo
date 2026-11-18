@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 
-@Service // Lo marco como servicio porque será usado para generar y validar tokens
+@Service // Lo marco como servicio porque sera usado para generar y validar tokens
 public class JwtService {
     /*
      * Esta es mi clave secreta.

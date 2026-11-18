@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-@Schema(
-        name = "DetalleMovimientoDtoRequest",
-        description = "Datos de un producto incluido en un movimiento de inventario."
-)
+@Schema(name = "DetalleMovimientoDtoRequest", description = "Datos de un producto incluido en un movimiento de inventario.")
 public record DetalleMovimientoDtoRequest(
 
         @Schema(description = "Identificador del producto", example = "5", requiredMode = Schema.RequiredMode.REQUIRED)

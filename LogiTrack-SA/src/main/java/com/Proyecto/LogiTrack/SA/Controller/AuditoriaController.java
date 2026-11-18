@@ -20,7 +20,6 @@ import java.util.List;
 @RequestMapping("/api/auditoria")
 @RequiredArgsConstructor
 @Tag(name = "Auditoria", description = "Consultas de registros de auditoría del sistema")
-@SecurityRequirement(name = "bearerAuth")
 public class AuditoriaController {
 
     private final AuditoriaService auditoriaService;

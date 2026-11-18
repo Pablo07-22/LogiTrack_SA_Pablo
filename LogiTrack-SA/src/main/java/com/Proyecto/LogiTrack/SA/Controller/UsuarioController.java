@@ -24,7 +24,6 @@ import java.util.List;
 @RequestMapping("/api/usuario")
 @RequiredArgsConstructor
 @Tag(name = "Usuarios", description = "Gestión de usuarios, roles, estados y solicitudes de registro")
-@SecurityRequirement(name = "bearerAuth")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;

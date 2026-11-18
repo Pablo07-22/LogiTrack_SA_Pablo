@@ -1,4 +1,3 @@
-
 package com.Proyecto.LogiTrack.SA.Service.Impl;
 
 import com.Proyecto.LogiTrack.SA.Exception.DatabaseRuleException;
@@ -23,7 +22,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,232 +42,81 @@ public class BodegaServiceImpl implements BodegaService {
 
     // REGISTRAR BODEGA
     @Override
-    @Transactional
+
     public BodegaDtoResponse guardar(BodegaDtoRequest dto) {
-
-        if (bodegaRepository.existsByNombre(dto.nombre())) {
-            throw new DatabaseRuleException(
-                    "Ya existe una bodega con ese nombre"
-            );
-        }
-
-        Ciudad ciudad = ciudadRepository.findById(dto.ciudadId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "La ciudad indicada no existe"
-                ));
-
-        Usuario encargado = usuarioRepository.findById(dto.encargadoId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El usuario encargado no existe"
-                ));
-
-        Bodega bodega = bodegaMapper.DtoToEntity(
-                dto, ciudad, encargado
-        );
-
+        if (bodegaRepository.existsByNombre(dto.nombre())) {throw new DatabaseRuleException("Ya existe una bodega con ese nombre");}
+        Ciudad ciudad = ciudadRepository.findById(dto.ciudadId()).orElseThrow(() -> new EntityNotFoundException("La ciudad indicada no existe"));
+        Usuario encargado = usuarioRepository.findById(dto.encargadoId()).orElseThrow(() -> new EntityNotFoundException("El usuario encargado no existe"));
+        Bodega bodega = bodegaMapper.DtoToEntity(dto, ciudad, encargado);
         Bodega bodegaGuardada = bodegaRepository.save(bodega);
-
-        auditoriaService.registrar(
-                "Bodega",
-                bodegaGuardada.getId(),
-                Auditoria.TipoOperacion.INSERTAR,
-                null,
-                obtenerValores(bodegaGuardada)
-        );
-
+        auditoriaService.registrar("Bodega", bodegaGuardada.getId(), Auditoria.TipoOperacion.INSERTAR, null, obtenerValores(bodegaGuardada));
         return bodegaMapper.entityToDto(bodegaGuardada);
     }
 
     // ACTUALIZAR BODEGA
     @Override
-    @Transactional
     public BodegaDtoResponse actualizar(BodegaDtoRequest dto, Long id) {
-
-        Bodega bodega = bodegaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "La bodega que desea actualizar no existe"
-                ));
-
-        Map<String, Object> valoresAnteriores =
-                obtenerValores(bodega);
-
-        if (bodegaRepository.existsByNombreAndIdNot(dto.nombre(), id)) {
-            throw new DatabaseRuleException(
-                    "Ya existe otra bodega con ese nombre"
-            );
-        }
-
-        Ciudad ciudad = ciudadRepository.findById(dto.ciudadId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "La ciudad indicada no existe"
-                ));
-
-        Usuario encargado = usuarioRepository.findById(dto.encargadoId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El usuario encargado no existe"
-                ));
-
-        // Validar que la nueva capacidad no sea inferior
-        // al inventario que actualmente tiene la bodega.
-        validaciones.validarCapacidadAlActualizarBodega(
-                bodega,
-                dto.capacidad()
-        );
-
-        bodegaMapper.updateEntityFromDto(
-                bodega, dto, ciudad, encargado
-        );
-
+        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("La bodega que desea actualizar no existe"));
+        Map<String, Object> valoresAnteriores = obtenerValores(bodega);
+        if (bodegaRepository.existsByNombreAndIdNot(dto.nombre(), id)) {throw new DatabaseRuleException("Ya existe otra bodega con ese nombre");}
+        Ciudad ciudad = ciudadRepository.findById(dto.ciudadId()).orElseThrow(() -> new EntityNotFoundException("La ciudad indicada no existe"));
+        Usuario encargado = usuarioRepository.findById(dto.encargadoId()).orElseThrow(() -> new EntityNotFoundException("El usuario encargado no existe"));
+        validaciones.validarCapacidadAlActualizarBodega(bodega, dto.capacidad());
+        bodegaMapper.updateEntityFromDto(bodega, dto, ciudad, encargado);
         Bodega bodegaActualizada = bodegaRepository.save(bodega);
-
-        auditoriaService.registrar(
-                "Bodega",
-                bodegaActualizada.getId(),
-                Auditoria.TipoOperacion.ACTUALIZAR,
-                valoresAnteriores,
-                obtenerValores(bodegaActualizada)
-        );
-
+        auditoriaService.registrar("Bodega", bodegaActualizada.getId(), Auditoria.TipoOperacion.ACTUALIZAR, valoresAnteriores, obtenerValores(bodegaActualizada));
         return bodegaMapper.entityToDto(bodegaActualizada);
     }
 
     // ELIMINAR BODEGA
     @Override
-    @Transactional
     public void eliminar(Long id) {
-
-        Bodega bodega = bodegaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "La bodega que desea eliminar no existe"
-                ));
-
-        boolean tieneInventario =
-                !inventarioBodegaRepository.findByBodega_Id(id).isEmpty();
-
-        boolean tieneMovimientosOrigen =
-                !movimientoRepository.findByBodegaOrigen_Id(id).isEmpty();
-
-        boolean tieneMovimientosDestino =
-                !movimientoRepository.findByBodegaDestino_Id(id).isEmpty();
-
-        if (tieneInventario
-                || tieneMovimientosOrigen
-                || tieneMovimientosDestino) {
-
-            throw new DatabaseRuleException(
-                    "No se puede eliminar la bodega porque tiene inventarios o movimientos asociados"
-            );
+        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("La bodega que desea eliminar no existe"));
+        boolean tieneInventario = !inventarioBodegaRepository.findByBodega_Id(id).isEmpty();
+        boolean tieneMovimientosOrigen = !movimientoRepository.findByBodegaOrigen_Id(id).isEmpty();
+        boolean tieneMovimientosDestino = !movimientoRepository.findByBodegaDestino_Id(id).isEmpty();
+        if (tieneInventario || tieneMovimientosOrigen || tieneMovimientosDestino) {
+            throw new DatabaseRuleException("No se puede eliminar la bodega porque tiene inventarios o movimientos asociados");
         }
-
-        Map<String, Object> valoresAnteriores =
-                obtenerValores(bodega);
-
+        Map<String, Object> valoresAnteriores = obtenerValores(bodega);
         bodegaRepository.delete(bodega);
-
-        auditoriaService.registrar(
-                "Bodega",
-                bodega.getId(),
-                Auditoria.TipoOperacion.BORRAR,
-                valoresAnteriores,
-                null
-        );
+        auditoriaService.registrar("Bodega", bodega.getId(), Auditoria.TipoOperacion.BORRAR, valoresAnteriores, null);
     }
 
     // OBTENER DATOS PARA AUDITORÍA
     private Map<String, Object> obtenerValores(Bodega bodega) {
-
         Map<String, Object> valores = new LinkedHashMap<>();
-
         valores.put("nombre", bodega.getNombre());
-
-        valores.put(
-                "ciudadId",
-                bodega.getCiudad() != null
-                        ? bodega.getCiudad().getIdCiudad()
-                        : null
-        );
-
-        valores.put(
-                "ciudad",
-                bodega.getCiudad() != null
-                        ? bodega.getCiudad().getNombreCiudad()
-                        : null
-        );
-
-        valores.put(
-                "encargadoId",
-                bodega.getEncargado() != null
-                        ? bodega.getEncargado().getId()
-                        : null
-        );
-
-        valores.put(
-                "encargado",
-                bodega.getEncargado() != null
-                        ? bodega.getEncargado().getUsername()
-                        : null
-        );
-
+        valores.put("ciudadId", bodega.getCiudad() != null ? bodega.getCiudad().getIdCiudad() : null);
+        valores.put("ciudad", bodega.getCiudad() != null ? bodega.getCiudad().getNombreCiudad() : null);
+        valores.put("encargadoId", bodega.getEncargado() != null ? bodega.getEncargado().getId() : null);
+        valores.put("encargado", bodega.getEncargado() != null ? bodega.getEncargado().getUsername() : null);
         valores.put("capacidad", bodega.getCapacidad());
-
-        valores.put(
-                "fechaCreacion",
-                bodega.getFechaCreacion() != null
-                        ? bodega.getFechaCreacion().toString()
-                        : null
-        );
-
+        valores.put("fechaCreacion", bodega.getFechaCreacion() != null ? bodega.getFechaCreacion().toString() : null);
         return valores;
     }
 
     // CONSULTAR BODEGAS
     @Override
     public List<BodegaDtoResponse> listar() {
-
-        return bodegaRepository.findAll()
-                .stream()
-                .map(bodegaMapper::entityToDto)
-                .toList();
+        return bodegaRepository.findAll().stream().map(bodegaMapper::entityToDto).toList();
     }
 
     @Override
     public BodegaDtoResponse buscarId(Long id) {
-
-        Bodega bodega = bodegaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No existe una bodega con el ID indicado"
-                ));
-
+        Bodega bodega = bodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("No existe una bodega con el ID indicado"));
         return bodegaMapper.entityToDto(bodega);
     }
 
     @Override
     public List<BodegaDtoResponse> buscarCiudad(Long ciudadId) {
-
-        if (!ciudadRepository.existsById(ciudadId)) {
-            throw new EntityNotFoundException(
-                    "La ciudad indicada no existe"
-            );
-        }
-
-        return bodegaRepository.findByCiudad_IdCiudad(ciudadId)
-                .stream()
-                .map(bodegaMapper::entityToDto)
-                .toList();
+        if (!ciudadRepository.existsById(ciudadId)) {throw new EntityNotFoundException("La ciudad indicada no existe");}
+        return bodegaRepository.findByCiudad_IdCiudad(ciudadId).stream().map(bodegaMapper::entityToDto).toList();
     }
 
     @Override
     public List<BodegaDtoResponse> buscarEncargado(Long encargadoId) {
-
-        if (!usuarioRepository.existsById(encargadoId)) {
-            throw new EntityNotFoundException(
-                    "El encargado indicado no existe"
-            );
-        }
-
-        return bodegaRepository.findByEncargado_Id(encargadoId)
-                .stream()
-                .map(bodegaMapper::entityToDto)
-                .toList();
+        if (!usuarioRepository.existsById(encargadoId)) {throw new EntityNotFoundException("El encargado indicado no existe");}
+        return bodegaRepository.findByEncargado_Id(encargadoId).stream().map(bodegaMapper::entityToDto).toList();
     }
 }

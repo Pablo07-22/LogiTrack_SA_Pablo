@@ -20,20 +20,15 @@ public class MovimientoMapper {
     }
 
     public MovimientoDtoResponse entityToDto(Movimiento movimiento){
-
         if (movimiento == null) return null;
-        return new MovimientoDtoResponse(movimiento.getId(),
-                movimiento.getFecha(),
-                movimiento.getTipoMovimiento(),
+        return new MovimientoDtoResponse(movimiento.getId(), movimiento.getFecha(), movimiento.getTipoMovimiento(),
                 usuarioMapper.entityToResumenDto(movimiento.getUsuarioResponsable()),
                 bodegaMapper.entityToResumenDto(movimiento.getBodegaOrigen()),
                 bodegaMapper.entityToResumenDto(movimiento.getBodegaDestino()),
-                movimiento.getObservacion()
-        );
+                movimiento.getObservacion());
     }
 
     public MovimientoResumenDtoResponse entityToResumenDto(Movimiento movimiento){
-
         if (movimiento == null) return null;
         return new MovimientoResumenDtoResponse(movimiento.getId(),
                 movimiento.getFecha(),
@@ -42,7 +37,6 @@ public class MovimientoMapper {
     }
 
     public Movimiento DtoToEntity(MovimientoDtoRequest dto,Usuario usuarioResponsable, Bodega bodegaOrigen, Bodega bodegaDestino) {
-
         if (dto == null) return null;
         Movimiento movimiento = new Movimiento();
         movimiento.setTipoMovimiento(dto.tipoMovimiento());
@@ -54,7 +48,6 @@ public class MovimientoMapper {
     }
 
     public void updateEntityFromDto(Movimiento movimiento, MovimientoDtoRequest dto, Usuario usuarioResponsable, Bodega bodegaOrigen, Bodega bodegaDestino){
-
         if (dto == null || movimiento == null) return;
         movimiento.setTipoMovimiento(dto.tipoMovimiento());
         movimiento.setUsuarioResponsable(usuarioResponsable);

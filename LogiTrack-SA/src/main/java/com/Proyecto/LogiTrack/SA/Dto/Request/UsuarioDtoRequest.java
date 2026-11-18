@@ -6,10 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(
-        name = "UsuarioDtoRequest",
-        description = "Datos para registrar o actualizar un usuario del sistema."
-)
+@Schema(name = "UsuarioDtoRequest", description = "Datos para registrar o actualizar un usuario del sistema.")
 public record UsuarioDtoRequest(
 
         @Schema(description = "Nombre de usuario único", example = "empleado01", requiredMode = Schema.RequiredMode.REQUIRED)

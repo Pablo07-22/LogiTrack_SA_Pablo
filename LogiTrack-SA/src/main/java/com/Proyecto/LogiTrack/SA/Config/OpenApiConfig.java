@@ -14,24 +14,12 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenApi() {
 
-        return new OpenAPI()
-                .info(new Info()
-                        .title("LogiTrack SA API")
-                        .version("1.0.0")
-                        .description(
-                                "API REST para la gestión de bodegas, " +
-                                        "productos, inventarios, movimientos y usuarios."
-                        )
-                )
-                .components(new Components()
-                        .addSecuritySchemes("bearerAuth",
-                                new SecurityScheme()
+        return new OpenAPI().info(new Info().title("LogiTrack SA API").version("1.0.0").description("API REST para la gestión de bodegas, " + "productos, inventarios, movimientos y usuarios."))
+                .components(new Components().addSecuritySchemes("bearerAuth", new SecurityScheme()
                                         .name("Authorization")
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
-                                        .description("Introduce el token JWT obtenido al iniciar sesión.")
-                        )
-                );
+                                        .description("Introduce el token JWT obtenido al iniciar sesión.")));
     }
 }

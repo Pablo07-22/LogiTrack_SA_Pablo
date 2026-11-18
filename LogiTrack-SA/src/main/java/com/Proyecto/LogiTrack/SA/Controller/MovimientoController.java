@@ -23,7 +23,6 @@ import java.util.List;
 @RequestMapping("/api/movimiento")
 @RequiredArgsConstructor
 @Tag(name = "Movimientos", description = "Registro y consulta de movimientos de inventario")
-@SecurityRequirement(name = "bearerAuth")
 public class MovimientoController {
 
     private final MovimientoService movimientoService;

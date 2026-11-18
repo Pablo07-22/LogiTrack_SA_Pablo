@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(
-        name = "CiudadDtoRequest",
-        description = "Datos necesarios para registrar o actualizar una ciudad."
-)
+@Schema(name = "CiudadDtoRequest", description = "Datos necesarios para registrar o actualizar una ciudad.")
 public record CiudadDtoRequest(
 
         @Schema(description = "Nombre de la ciudad", example = "Medellin", requiredMode = Schema.RequiredMode.REQUIRED)

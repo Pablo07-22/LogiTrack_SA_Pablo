@@ -89,116 +89,62 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioDtoResponse registrarSolicitud(RegistroRequest dto) {
-
         if (usuarioRepository.existsByUsername(dto.username())) {
-            throw new BussinesRuleException(
-                    "Este username ya se encuentra registrado"
-            );
+            throw new BussinesRuleException("Este username ya se encuentra registrado");
         }
-
         Usuario usuario = new Usuario();
-
         usuario.setUsername(dto.username());
-        usuario.setPassword(
-                passwordEncoder.encode(dto.password())
-        );
-
-        // Nunca se permite que el registro público elija el rol.
+        usuario.setPassword(passwordEncoder.encode(dto.password()));
         usuario.setRol(Usuario.Rol.EMPLEADO);
-
-        // Todo nuevo registro queda pendiente.
         usuario.setEstado(Usuario.Estado.PENDIENTE);
-
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
-
         return usuarioMapper.entityToDto(usuarioGuardado);
     }
 
     @Override
     public List<UsuarioDtoResponse> listarPendientes() {
-
-        return usuarioRepository.findByEstado(Usuario.Estado.PENDIENTE)
-                .stream()
-                .map(usuarioMapper::entityToDto)
-                .toList();
+        return usuarioRepository.findByEstado(Usuario.Estado.PENDIENTE).stream().map(usuarioMapper::entityToDto).toList();
     }
 
     @Override
     public UsuarioDtoResponse aprobarSolicitud(Long id) {
-
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No existe el usuario solicitado"
-                ));
-
+        Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                        "No existe el usuario solicitado"));
         if (usuario.getEstado() != Usuario.Estado.PENDIENTE) {
-            throw new BussinesRuleException(
-                    "El usuario no tiene una solicitud pendiente"
-            );
+            throw new BussinesRuleException("El usuario no tiene una solicitud pendiente");
         }
-
-        // El administrador solo puede aprobarlo como empleado.
         usuario.setRol(Usuario.Rol.EMPLEADO);
         usuario.setEstado(Usuario.Estado.ACTIVO);
-
-        return usuarioMapper.entityToDto(
-                usuarioRepository.save(usuario)
-        );
+        return usuarioMapper.entityToDto(usuarioRepository.save(usuario));
     }
 
     @Override
     public void rechazarSolicitud(Long id) {
-
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No existe el usuario solicitado"
-                ));
-
+        Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                        "No existe el usuario solicitado"));
         if (usuario.getEstado() != Usuario.Estado.PENDIENTE) {
-            throw new BussinesRuleException(
-                    "Solo se pueden rechazar solicitudes pendientes"
-            );
+            throw new BussinesRuleException("Solo se pueden rechazar solicitudes pendientes");
         }
-
         usuarioRepository.delete(usuario);
     }
 
 
     @Override
     public UsuarioDtoResponse crearAdministrador(AdministradorDtoRequest dto) {
-
-        // Evitar que se creen dos usuarios con el mismo username.
         if (usuarioRepository.existsByUsername(dto.username())) {
-            throw new BussinesRuleException(
-                    "Este username ya se encuentra registrado"
-            );
+            throw new BussinesRuleException("Este username ya se encuentra registrado");
         }
-
         Usuario administrador = new Usuario();
-
         administrador.setUsername(dto.username());
-
-        // La contraseña nunca se guarda en texto plano.
-        administrador.setPassword(
-                passwordEncoder.encode(dto.password())
-        );
-
-        // El backend asigna el rol y el estado.
+        administrador.setPassword(passwordEncoder.encode(dto.password()));
         administrador.setRol(Usuario.Rol.ADMIN);
         administrador.setEstado(Usuario.Estado.ACTIVO);
-
         Usuario guardado = usuarioRepository.save(administrador);
-
         return usuarioMapper.entityToDto(guardado);
     }
 
     @Override
     public List<UsuarioResumenDtoResponse> listarActivosParaMovimiento() {
-        return usuarioRepository.findByEstado(Usuario.Estado.ACTIVO)
-                .stream()
-                .map(usuarioMapper::entityToResumenDto)
-                .toList();
+        return usuarioRepository.findByEstado(Usuario.Estado.ACTIVO).stream().map(usuarioMapper::entityToResumenDto).toList();
     }
-
-
 }

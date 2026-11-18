@@ -27,80 +27,41 @@ public class Validaciones {
             BigDecimal nuevaCapacidad
     ) {
         long stockActual = obtenerStockTotal(bodega.getId());
-
         if (BigDecimal.valueOf(stockActual).compareTo(nuevaCapacidad) > 0) {
-            throw new BussinesRuleException(
-                    "No se puede reducir la capacidad. La bodega tiene "
-                            + stockActual + " unidades almacenadas."
-            );
+            throw new BussinesRuleException("No se puede reducir la capacidad. La bodega tiene " + stockActual + " unidades almacenadas.");
         }
     }
 
     // Valida entradas y transferencias hacia una bodega.
-    public void validarCapacidadDisponible(
-            Bodega bodega,
-            long unidadesAIngresar
-    ) {
+    public void validarCapacidadDisponible(Bodega bodega, long unidadesAIngresar) {
         if (unidadesAIngresar <= 0) {
-            throw new BussinesRuleException(
-                    "Las unidades que se desean ingresar deben ser mayores que cero."
-            );
+            throw new BussinesRuleException("Las unidades que se desean ingresar deben ser mayores que cero.");
         }
-
         long stockActual = obtenerStockTotal(bodega.getId());
-
         long stockProyectado = stockActual + unidadesAIngresar;
-
-        if (BigDecimal.valueOf(stockProyectado)
-                .compareTo(bodega.getCapacidad()) > 0) {
-
-            BigDecimal disponible = bodega.getCapacidad()
-                    .subtract(BigDecimal.valueOf(stockActual));
-
-            throw new BussinesRuleException(
-                    "Capacidad excedida. Capacidad: "
-                            + bodega.getCapacidad()
-                            + ", ocupado: " + stockActual
-                            + ", disponible: " + disponible.max(BigDecimal.ZERO)
-                            + ", unidades solicitadas: " + unidadesAIngresar
+        if (BigDecimal.valueOf(stockProyectado).compareTo(bodega.getCapacidad()) > 0) {
+            BigDecimal disponible = bodega.getCapacidad().subtract(BigDecimal.valueOf(stockActual));
+            throw new BussinesRuleException("Capacidad excedida. Capacidad: " + bodega.getCapacidad()
+                            + ", ocupado: " + stockActual + ", disponible: " + disponible.max(BigDecimal.ZERO) + ", unidades solicitadas: " + unidadesAIngresar
             );
         }
     }
 
     // Valida creación y actualización directa de inventarios.
-    public void validarCapacidadAlGuardarInventario(
-            Bodega nuevaBodega,
-            InventarioBodega inventarioActual,
-            int nuevoStock
-    ) {
+    public void validarCapacidadAlGuardarInventario(Bodega nuevaBodega, InventarioBodega inventarioActual, int nuevoStock) {
         if (nuevoStock < 0) {
-            throw new BussinesRuleException(
-                    "El stock no puede ser negativo."
-            );
+            throw new BussinesRuleException("El stock no puede ser negativo.");
         }
-
         long stockActual = obtenerStockTotal(nuevaBodega.getId());
-
         // Si se actualiza un inventario existente en la misma bodega,
         // primero se descuenta su stock anterior.
-        if (inventarioActual != null
-                && inventarioActual.getBodega() != null
-                && inventarioActual.getBodega().getId()
-                .equals(nuevaBodega.getId())) {
-
+        if (inventarioActual != null && inventarioActual.getBodega() != null && inventarioActual.getBodega().getId().equals(nuevaBodega.getId())) {
             stockActual -= inventarioActual.getStock();
         }
-
         long stockProyectado = stockActual + nuevoStock;
-
-        if (BigDecimal.valueOf(stockProyectado)
-                .compareTo(nuevaBodega.getCapacidad()) > 0) {
-
-            throw new BussinesRuleException(
-                    "No se puede guardar el inventario porque supera "
-                            + "la capacidad de la bodega. Capacidad: "
-                            + nuevaBodega.getCapacidad()
-                            + ", stock proyectado: " + stockProyectado
+        if (BigDecimal.valueOf(stockProyectado).compareTo(nuevaBodega.getCapacidad()) > 0) {
+            throw new BussinesRuleException("No se puede guardar el inventario porque supera " + "la capacidad de la bodega. Capacidad: "
+                            + nuevaBodega.getCapacidad() + ", stock proyectado: " + stockProyectado
             );
         }
     }

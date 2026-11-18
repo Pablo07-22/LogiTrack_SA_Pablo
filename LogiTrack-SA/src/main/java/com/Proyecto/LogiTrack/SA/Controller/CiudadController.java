@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/api/ciudad")
 @RequiredArgsConstructor
 @Tag(name = "Ciudades", description = "Gestión de ciudades")
-@SecurityRequirement(name = "bearerAuth")
 public class CiudadController {
 
     private final CiudadService ciudadService;

@@ -9,10 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-@Schema(
-        name = "ProductoDtoRequest",
-        description = "Datos necesarios para registrar o actualizar un producto."
-)
+@Schema(name = "ProductoDtoRequest", description = "Datos necesarios para registrar o actualizar un producto.")
 public record ProductoDtoRequest(
 
         @Schema(description = "Nombre del producto", example = "Teclado inalámbrico", requiredMode = Schema.RequiredMode.REQUIRED)

@@ -1,3 +1,4 @@
+
 package com.Proyecto.LogiTrack.SA.Model;
 
 import jakarta.persistence.*;
@@ -14,7 +15,6 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Movimiento {
 
     public enum TipoMovimiento {
@@ -47,6 +47,7 @@ public class Movimiento {
     @Column(length = 500)
     private String observacion;
 
+    // Asignar fecha automáticamente antes de insertar.
     @PrePersist
     public void antesDeGuardar() {
         if (fecha == null) {

@@ -19,19 +19,14 @@ public class ProductoMapper {
     }
 
     public ProductoDtoResponse entityToDto(Producto producto){
-
         if (producto == null) return null;
-        return new ProductoDtoResponse(producto.getId(),
-                producto.getNombre(),
-                marcaMapper.entityToDto(producto.getMarca()),
+        return new ProductoDtoResponse(producto.getId(), producto.getNombre(), marcaMapper.entityToDto(producto.getMarca()),
                 categoriaProductoMapper.entityToDto(producto.getCategoria()),
                 producto.getPrecioUnitario(),
-                producto.getFechaCreacion()
-        );
+                producto.getFechaCreacion());
     }
 
     public Producto DtoToEntity(ProductoDtoRequest dto, Marca marca, CategoriaProducto categoria){
-
         if (dto == null) return null;
         Producto producto = new Producto();
         producto.setNombre(dto.nombre());
@@ -42,7 +37,6 @@ public class ProductoMapper {
     }
 
     public void updateEntityFromDto(Producto producto, ProductoDtoRequest dto, Marca marca, CategoriaProducto categoria){
-
         if (dto == null || producto == null) return;
         producto.setNombre(dto.nombre());
         producto.setMarca(marca);

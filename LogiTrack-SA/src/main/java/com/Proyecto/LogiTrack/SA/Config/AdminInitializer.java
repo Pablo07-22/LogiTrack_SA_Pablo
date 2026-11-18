@@ -15,19 +15,13 @@ public class AdminInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void run(String... args) {
-
+    public void run(String...args) {
         if (usuarioRepository.findByUsername("admin").isEmpty()) {
-
             Usuario admin = new Usuario();
-
             admin.setUsername("admin");
-            admin.setPassword(
-                    passwordEncoder.encode("1234")
-            );
+            admin.setPassword(passwordEncoder.encode("1234"));
             admin.setRol(Usuario.Rol.ADMIN);
             admin.setEstado(Usuario.Estado.ACTIVO);
-
             usuarioRepository.save(admin);
         }
     }

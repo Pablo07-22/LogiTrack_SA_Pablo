@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(
-        name = "MarcaDtoRequest",
-        description = "Datos necesarios para registrar o actualizar una marca."
-)
+@Schema(name = "MarcaDtoRequest", description = "Datos necesarios para registrar o actualizar una marca.")
 public record MarcaDtoRequest(
 
         @Schema(description = "Nombre de la marca", example = "Samsung", requiredMode = Schema.RequiredMode.REQUIRED)

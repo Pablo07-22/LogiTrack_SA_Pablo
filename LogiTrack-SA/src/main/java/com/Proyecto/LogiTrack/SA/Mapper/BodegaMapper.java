@@ -22,11 +22,8 @@ public class BodegaMapper {
     }
 
     public BodegaDtoResponse entityToDto(Bodega bodega){
-
         if (bodega == null) return null;
-        return new BodegaDtoResponse(bodega.getId(),
-                bodega.getNombre(),
-                ciudadMapper.entityToDto(bodega.getCiudad()),
+        return new BodegaDtoResponse(bodega.getId(), bodega.getNombre(), ciudadMapper.entityToDto(bodega.getCiudad()),
                 usuarioMapper.entityToResumenDto(bodega.getEncargado()),
                 bodega.getCapacidad(),
                 bodega.getFechaCreacion()
@@ -34,15 +31,11 @@ public class BodegaMapper {
     }
 
     public BodegaResumenDtoResponse entityToResumenDto(Bodega bodega){
-
         if (bodega == null) return null;
-        return new BodegaResumenDtoResponse( bodega.getId(),
-                bodega.getNombre()
-        );
+        return new BodegaResumenDtoResponse( bodega.getId(), bodega.getNombre());
     }
 
     public Bodega DtoToEntity(BodegaDtoRequest dto, Ciudad ciudad, Usuario encargado){
-
         if (dto == null) return null;
         Bodega bodega = new Bodega();
         bodega.setNombre(dto.nombre());
@@ -53,7 +46,6 @@ public class BodegaMapper {
     }
 
     public void updateEntityFromDto(Bodega bodega, BodegaDtoRequest dto, Ciudad ciudad, Usuario encargado){
-
         if (dto == null || bodega == null) return;
         bodega.setNombre(dto.nombre());
         bodega.setCiudad(ciudad);

@@ -19,17 +19,13 @@ public class DetalleMovimientoMapper {
     }
 
     public DetalleMovimientoDtoResponse entityToDto(DetalleMovimiento detalle) {
-
         if (detalle == null) return null;
-        return new DetalleMovimientoDtoResponse(detalle.getId(),
-                movimientoMapper.entityToResumenDto(detalle.getMovimiento()),
+        return new DetalleMovimientoDtoResponse(detalle.getId(), movimientoMapper.entityToResumenDto(detalle.getMovimiento()),
                 productoMapper.entityToDto(detalle.getProducto()),
-                detalle.getCantidad()
-        );
+                detalle.getCantidad());
     }
 
     public DetalleMovimiento DtoToEntity(DetalleMovimientoDtoRequest dto, Movimiento movimiento, Producto producto){
-
         if (dto == null) return null;
         DetalleMovimiento detalle = new DetalleMovimiento();
         detalle.setMovimiento(movimiento);
@@ -39,7 +35,6 @@ public class DetalleMovimientoMapper {
     }
 
     public void updateEntityFromDto(DetalleMovimiento detalle, DetalleMovimientoDtoRequest dto, Movimiento movimiento, Producto producto){
-
         if (dto == null || detalle == null) return;
         detalle.setMovimiento(movimiento);
         detalle.setProducto(producto);

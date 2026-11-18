@@ -5,10 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
-@Schema(
-        name = "InventarioBodegaDtoRequest",
-        description = "Datos para registrar o actualizar un inventario por bodega."
-)
+@Schema(name = "InventarioBodegaDtoRequest", description = "Datos para registrar o actualizar un inventario por bodega.")
 public record InventarioBodegaDtoRequest(
 
         @Schema(description = "Identificador de la bodega", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)

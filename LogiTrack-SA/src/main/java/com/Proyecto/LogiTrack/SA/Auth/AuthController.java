@@ -25,57 +25,20 @@ public class AuthController {
     private final UsuarioService usuarioService;
 
     @PostMapping("/registro")
-    public ResponseEntity<String> registrar(
-            @Valid @RequestBody RegistroRequest dto) {
-
+    public ResponseEntity<String> registrar(@Valid @RequestBody RegistroRequest dto) {
         usuarioService.registrarSolicitud(dto);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("Solicitud enviada. Espera la aprobación del administrador.");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Solicitud enviada. Espera la aprobación del administrador.");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest request) {
-
-        List<Usuario> usuarios =
-                usuarioRepository.findByUsername(request.username());
-
-        if (usuarios.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Credenciales inválidas"
-            );
-        }
-
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        List<Usuario> usuarios = usuarioRepository.findByUsername(request.username());
+        if (usuarios.isEmpty()) {throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");}
         Usuario usuario = usuarios.get(0);
-
-        if (!passwordEncoder.matches(
-                request.password(),
-                usuario.getPassword())) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Credenciales inválidas"
-            );
-        }
-
-        if (usuario.getEstado() == Usuario.Estado.PENDIENTE) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Tu solicitud todavía está pendiente de aprobación"
-            );
-        }
-
-        if (usuario.getEstado() != Usuario.Estado.ACTIVO) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Tu cuenta no se encuentra activa"
-            );
-        }
-
+        if (!passwordEncoder.matches(request.password(), usuario.getPassword())) {throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");}
+        if (usuario.getEstado() == Usuario.Estado.PENDIENTE) {throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu solicitud todavía está pendiente de aprobación");}
+        if (usuario.getEstado() != Usuario.Estado.ACTIVO) {throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu cuenta no se encuentra activa");}
         String token = jwtService.generateToken(usuario.getUsername());
-
         return ResponseEntity.ok(new LoginResponse(token));
     }
 }

@@ -1,4 +1,3 @@
-
 package com.Proyecto.LogiTrack.SA.Service.Impl;
 
 import com.Proyecto.LogiTrack.SA.Exception.DatabaseRuleException;
@@ -22,7 +21,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
@@ -41,240 +39,109 @@ public class ProductoServiceImpl implements ProductoService {
     private final DetalleMovimientoRepository detalleMovimientoRepository;
     private final AuditoriaService auditoriaService;
 
-    // REGISTRAR PRODUCTO
+
     @Override
-    @Transactional
     public ProductoDtoResponse guardar(ProductoDtoRequest dto) {
-
         Marca marca = null;
-
         if (dto.marcaId() != null) {
-            marca = marcaRepository.findById(dto.marcaId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "La marca indicada no existe"
-                    ));
+            marca = marcaRepository.findById(dto.marcaId()).orElseThrow(() -> new EntityNotFoundException("La marca indicada no existe"));
         }
-
-        CategoriaProducto categoria =
-                categoriaProductoRepository.findById(dto.categoriaId())
-                        .orElseThrow(() -> new EntityNotFoundException(
-                                "La categoría indicada no existe"
-                        ));
-
-        Producto producto = productoMapper.DtoToEntity(
-                dto, marca, categoria
-        );
-
+        CategoriaProducto categoria = categoriaProductoRepository.findById(dto.categoriaId())
+                        .orElseThrow(() -> new EntityNotFoundException("La categoría indicada no existe"));
+        Producto producto = productoMapper.DtoToEntity(dto, marca, categoria);
         Producto productoGuardado = productoRepository.save(producto);
-
-        auditoriaService.registrar(
-                "Producto",
-                productoGuardado.getId(),
-                Auditoria.TipoOperacion.INSERTAR,
-                null,
-                obtenerValores(productoGuardado)
-        );
-
+        auditoriaService.registrar("Producto", productoGuardado.getId(), Auditoria.TipoOperacion.INSERTAR,
+                null, obtenerValores(productoGuardado));
         return productoMapper.entityToDto(productoGuardado);
     }
 
-    // ACTUALIZAR PRODUCTO
+
     @Override
-    @Transactional
     public ProductoDtoResponse actualizar(ProductoDtoRequest dto, Long id) {
-
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El producto que desea actualizar no existe"
-                ));
-
-        Map<String, Object> valoresAnteriores =
-                obtenerValores(producto);
-
+        Producto producto = productoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("El producto que desea actualizar no existe"));
+        Map<String, Object> valoresAnteriores = obtenerValores(producto);
         Marca marca = null;
-
         if (dto.marcaId() != null) {
-            marca = marcaRepository.findById(dto.marcaId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "La marca indicada no existe"
-                    ));
+            marca = marcaRepository.findById(dto.marcaId()).orElseThrow(() -> new EntityNotFoundException("La marca indicada no existe"));
         }
-
-        CategoriaProducto categoria =
-                categoriaProductoRepository.findById(dto.categoriaId())
-                        .orElseThrow(() -> new EntityNotFoundException(
-                                "La categoría indicada no existe"
-                        ));
-
-        productoMapper.updateEntityFromDto(
-                producto, dto, marca, categoria
-        );
-
-        Producto productoActualizado =
-                productoRepository.save(producto);
-
-        auditoriaService.registrar(
-                "Producto",
-                productoActualizado.getId(),
-                Auditoria.TipoOperacion.ACTUALIZAR,
-                valoresAnteriores,
-                obtenerValores(productoActualizado)
-        );
-
+        CategoriaProducto categoria = categoriaProductoRepository.findById(dto.categoriaId())
+                        .orElseThrow(() -> new EntityNotFoundException("La categoría indicada no existe"));
+        productoMapper.updateEntityFromDto(producto, dto, marca, categoria);
+        Producto productoActualizado = productoRepository.save(producto);
+        auditoriaService.registrar("Producto", productoActualizado.getId(), Auditoria.TipoOperacion.ACTUALIZAR,
+                valoresAnteriores, obtenerValores(productoActualizado));
         return productoMapper.entityToDto(productoActualizado);
     }
 
-    // ELIMINAR PRODUCTO
+
     @Override
-    @Transactional
     public void eliminar(Long id) {
-
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El producto que desea eliminar no existe"
-                ));
-
-        boolean tieneInventario =
-                !inventarioBodegaRepository.findByProducto_Id(id).isEmpty();
-
-        boolean tieneMovimientos =
-                detalleMovimientoRepository.existsByProducto_Id(id);
-
+        Producto producto = productoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                        "El producto que desea eliminar no existe"));
+        boolean tieneInventario = !inventarioBodegaRepository.findByProducto_Id(id).isEmpty();
+        boolean tieneMovimientos = detalleMovimientoRepository.existsByProducto_Id(id);
         if (tieneInventario || tieneMovimientos) {
-            throw new DatabaseRuleException(
-                    "No se puede eliminar el producto porque tiene inventarios o movimientos asociados"
-            );
+            throw new DatabaseRuleException("No se puede eliminar el producto porque tiene inventarios o movimientos asociados");
         }
-
-        Map<String, Object> valoresAnteriores =
-                obtenerValores(producto);
-
+        Map<String, Object> valoresAnteriores = obtenerValores(producto);
         productoRepository.delete(producto);
-
-        auditoriaService.registrar(
-                "Producto",
-                producto.getId(),
-                Auditoria.TipoOperacion.BORRAR,
-                valoresAnteriores,
-                null
-        );
+        auditoriaService.registrar("Producto", producto.getId(), Auditoria.TipoOperacion.BORRAR, valoresAnteriores, null);
     }
 
-    // OBTENER VALORES DEL PRODUCTO PARA LA AUDITORÍA
+
     private Map<String, Object> obtenerValores(Producto producto) {
-
         Map<String, Object> valores = new LinkedHashMap<>();
-
         valores.put("nombre", producto.getNombre());
-
-        valores.put(
-                "marcaId",
-                producto.getMarca() != null
-                        ? producto.getMarca().getId()
-                        : null
-        );
-
-        valores.put(
-                "marca",
-                producto.getMarca() != null
-                        ? producto.getMarca().getNombreMarca()
-                        : null
-        );
-
+        valores.put("marcaId", producto.getMarca() != null ? producto.getMarca().getId() : null);
+        valores.put("marca", producto.getMarca() != null ? producto.getMarca().getNombreMarca() : null);
         valores.put("categoriaId", producto.getCategoria().getId());
-
-        valores.put(
-                "categoria",
-                producto.getCategoria().getTipoCategoria()
-        );
-
+        valores.put("categoria", producto.getCategoria().getTipoCategoria());
         valores.put("precioUnitario", producto.getPrecioUnitario());
-
-        valores.put(
-                "fechaCreacion",
-                producto.getFechaCreacion() != null
-                        ? producto.getFechaCreacion().toString()
-                        : null
-        );
-
+        valores.put("fechaCreacion", producto.getFechaCreacion() != null ? producto.getFechaCreacion().toString() : null);
         return valores;
     }
 
-    // CONSULTAR PRODUCTOS
+
     @Override
     public List<ProductoDtoResponse> listar() {
-
-        return productoRepository.findAll()
-                .stream()
-                .map(productoMapper::entityToDto)
-                .toList();
+        return productoRepository.findAll().stream().map(productoMapper::entityToDto).toList();
     }
 
     @Override
     public ProductoDtoResponse buscarId(Long id) {
-
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No existe un producto con el ID indicado"
-                ));
-
+        Producto producto = productoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("No existe un producto con el ID indicado"));
         return productoMapper.entityToDto(producto);
     }
 
     @Override
     public List<ProductoDtoResponse> buscarNombre(String nombre) {
-
-        return productoRepository.findByNombreContainingIgnoreCase(nombre)
-                .stream()
-                .map(productoMapper::entityToDto)
-                .toList();
+        return productoRepository.findByNombreContainingIgnoreCase(nombre).stream().map(productoMapper::entityToDto).toList();
     }
 
     @Override
     public List<ProductoDtoResponse> buscarMarca(Long marcaId) {
-
         if (!marcaRepository.existsById(marcaId)) {
-            throw new EntityNotFoundException(
-                    "La marca indicada no existe"
-            );
+            throw new EntityNotFoundException("La marca indicada no existe");
         }
-
-        return productoRepository.findByMarca_Id(marcaId)
-                .stream()
-                .map(productoMapper::entityToDto)
-                .toList();
+        return productoRepository.findByMarca_Id(marcaId).stream().map(productoMapper::entityToDto).toList();
     }
 
     @Override
     public List<ProductoDtoResponse> buscarCategoria(Long categoriaId) {
-
         if (!categoriaProductoRepository.existsById(categoriaId)) {
-            throw new EntityNotFoundException(
-                    "La categoría indicada no existe"
-            );
+            throw new EntityNotFoundException("La categoría indicada no existe");
         }
 
-        return productoRepository.findByCategoria_Id(categoriaId)
-                .stream()
-                .map(productoMapper::entityToDto)
-                .toList();
+        return productoRepository.findByCategoria_Id(categoriaId).stream().map(productoMapper::entityToDto).toList();
     }
 
     @Override
     public List<ProductoDtoResponse> buscarPrecioMayor(BigDecimal precio) {
-
-        return productoRepository.findByPrecioUnitarioGreaterThanEqual(precio)
-                .stream()
-                .map(productoMapper::entityToDto)
-                .toList();
+        return productoRepository.findByPrecioUnitarioGreaterThanEqual(precio).stream().map(productoMapper::entityToDto).toList();
     }
 
     @Override
     public List<ProductoDtoResponse> buscarPrecioMenor(BigDecimal precio) {
-
-        return productoRepository.findByPrecioUnitarioLessThanEqual(precio)
-                .stream()
-                .map(productoMapper::entityToDto)
-                .toList();
+        return productoRepository.findByPrecioUnitarioLessThanEqual(precio).stream().map(productoMapper::entityToDto).toList();
     }
 }

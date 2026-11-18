@@ -19,17 +19,13 @@ public class InventarioBodegaMapper {
     }
 
     public InventarioBodegaDtoResponse entityToDto(InventarioBodega inventario){
-
         if (inventario == null) return null;
-        return new InventarioBodegaDtoResponse(inventario.getId(),
-                bodegaMapper.entityToResumenDto(inventario.getBodega()),
+        return new InventarioBodegaDtoResponse(inventario.getId(), bodegaMapper.entityToResumenDto(inventario.getBodega()),
                 productoMapper.entityToDto(inventario.getProducto()),
-                inventario.getStock()
-        );
+                inventario.getStock());
     }
 
     public InventarioBodega DtoToEntity(InventarioBodegaDtoRequest dto, Bodega bodega, Producto producto){
-
         if (dto == null) return null;
         InventarioBodega inventario = new InventarioBodega();
         inventario.setBodega(bodega);
@@ -39,7 +35,6 @@ public class InventarioBodegaMapper {
     }
 
     public void updateEntityFromDto(InventarioBodega inventario, InventarioBodegaDtoRequest dto, Bodega bodega, Producto producto){
-
         if (dto == null || inventario == null) return;
         inventario.setBodega(bodega);
         inventario.setProducto(producto);

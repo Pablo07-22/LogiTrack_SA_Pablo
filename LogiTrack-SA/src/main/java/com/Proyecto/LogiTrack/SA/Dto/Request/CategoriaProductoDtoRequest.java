@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(
-        name = "CategoriaProductoDtoRequest",
-        description = "Datos para registrar o actualizar una categoría de producto."
-)
+@Schema(name = "CategoriaProductoDtoRequest", description = "Datos para registrar o actualizar una categoría de producto.")
 public record CategoriaProductoDtoRequest(
 
         @Schema(description = "Nombre o tipo de categoría", example = "Electrónica", requiredMode = Schema.RequiredMode.REQUIRED)

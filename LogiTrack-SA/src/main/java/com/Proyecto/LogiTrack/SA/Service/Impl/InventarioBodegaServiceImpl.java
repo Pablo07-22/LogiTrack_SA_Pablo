@@ -1,4 +1,3 @@
-
 package com.Proyecto.LogiTrack.SA.Service.Impl;
 
 import com.Proyecto.LogiTrack.SA.Exception.DatabaseRuleException;
@@ -18,7 +17,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,175 +32,75 @@ public class InventarioBodegaServiceImpl implements InventarioBodegaService {
 
     // REGISTRAR INVENTARIO
     @Override
-    @Transactional
     public InventarioBodegaDtoResponse guardar(InventarioBodegaDtoRequest dto) {
-
-        Bodega bodega = bodegaRepository.findById(dto.bodegaId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "La bodega indicada no existe"
-                ));
-
-        Producto producto = productoRepository.findById(dto.productoId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El producto indicado no existe"
-                ));
-
-        if (inventarioBodegaRepository.existsByBodega_IdAndProducto_Id(
-                dto.bodegaId(), dto.productoId())) {
-
-            throw new DatabaseRuleException(
-                    "El producto ya tiene un registro de inventario en esta bodega"
-            );
+        Bodega bodega = bodegaRepository.findById(dto.bodegaId()).orElseThrow(() -> new EntityNotFoundException("La bodega indicada no existe"));
+        Producto producto = productoRepository.findById(dto.productoId()).orElseThrow(() -> new EntityNotFoundException("El producto indicado no existe"));
+        if (inventarioBodegaRepository.existsByBodega_IdAndProducto_Id(dto.bodegaId(), dto.productoId())) {
+            throw new DatabaseRuleException("El producto ya tiene un registro de inventario en esta bodega");
         }
-
-        // Validar que el nuevo stock no supere la capacidad de la bodega.
-        validaciones.validarCapacidadAlGuardarInventario(
-                bodega,
-                null,
-                dto.stock()
-        );
-
-        InventarioBodega inventario =
-                inventarioBodegaMapper.DtoToEntity(dto, bodega, producto);
-
-        InventarioBodega inventarioGuardado =
-                inventarioBodegaRepository.save(inventario);
-
+        validaciones.validarCapacidadAlGuardarInventario(bodega, null, dto.stock());
+        InventarioBodega inventario = inventarioBodegaMapper.DtoToEntity(dto, bodega, producto);
+        InventarioBodega inventarioGuardado = inventarioBodegaRepository.save(inventario);
         return inventarioBodegaMapper.entityToDto(inventarioGuardado);
     }
 
-    // ACTUALIZAR INVENTARIO
     @Override
-    @Transactional
-    public InventarioBodegaDtoResponse actualizar(
-            InventarioBodegaDtoRequest dto,
-            Long id
-    ) {
-
-        InventarioBodega inventario = inventarioBodegaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El inventario que desea actualizar no existe"
-                ));
-
-        Bodega bodega = bodegaRepository.findById(dto.bodegaId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "La bodega indicada no existe"
-                ));
-
-        Producto producto = productoRepository.findById(dto.productoId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El producto indicado no existe"
-                ));
-
-        InventarioBodega existente =
-                inventarioBodegaRepository.findByBodega_IdAndProducto_Id(
-                        dto.bodegaId(),
-                        dto.productoId()
-                );
-
+    public InventarioBodegaDtoResponse actualizar(InventarioBodegaDtoRequest dto, Long id) {
+        InventarioBodega inventario = inventarioBodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                        "El inventario que desea actualizar no existe"));
+        Bodega bodega = bodegaRepository.findById(dto.bodegaId()).orElseThrow(() -> new EntityNotFoundException("La bodega indicada no existe"));
+        Producto producto = productoRepository.findById(dto.productoId()).orElseThrow(() -> new EntityNotFoundException(
+                        "El producto indicado no existe"));
+        InventarioBodega existente = inventarioBodegaRepository.findByBodega_IdAndProducto_Id(dto.bodegaId(), dto.productoId());
         if (existente != null && !existente.getId().equals(id)) {
-            throw new DatabaseRuleException(
-                    "Ya existe un inventario para ese producto en esa bodega"
-            );
+            throw new DatabaseRuleException("Ya existe un inventario para ese producto en esa bodega");
         }
-
-        // Validar la capacidad considerando el stock anterior.
-        validaciones.validarCapacidadAlGuardarInventario(
-                bodega,
-                inventario,
-                dto.stock()
-        );
-
-        inventarioBodegaMapper.updateEntityFromDto(
-                inventario, dto, bodega, producto
-        );
-
-        InventarioBodega inventarioActualizado =
-                inventarioBodegaRepository.save(inventario);
-
+        validaciones.validarCapacidadAlGuardarInventario(bodega, inventario, dto.stock());
+        inventarioBodegaMapper.updateEntityFromDto(inventario, dto, bodega, producto);
+        InventarioBodega inventarioActualizado = inventarioBodegaRepository.save(inventario);
         return inventarioBodegaMapper.entityToDto(inventarioActualizado);
     }
 
-    // ELIMINAR INVENTARIO
     @Override
-    @Transactional
     public void eliminar(Long id) {
-
-        InventarioBodega inventario = inventarioBodegaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "El inventario que desea eliminar no existe"
-                ));
-
+        InventarioBodega inventario = inventarioBodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                        "El inventario que desea eliminar no existe"));
         if (inventario.getStock() > 0) {
-            throw new DatabaseRuleException(
-                    "No se puede eliminar un inventario que tiene unidades disponibles"
-            );
+            throw new DatabaseRuleException("No se puede eliminar un inventario que tiene unidades disponibles");
         }
-
         inventarioBodegaRepository.delete(inventario);
     }
 
-    // LISTAR INVENTARIOS
     @Override
     public List<InventarioBodegaDtoResponse> listar() {
-
-        return inventarioBodegaRepository.findAll()
-                .stream()
-                .map(inventarioBodegaMapper::entityToDto)
-                .toList();
+        return inventarioBodegaRepository.findAll().stream().map(inventarioBodegaMapper::entityToDto).toList();
     }
 
-    // BUSCAR POR ID
     @Override
     public InventarioBodegaDtoResponse buscarId(Long id) {
-
-        InventarioBodega inventario = inventarioBodegaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No existe un inventario con el ID indicado"
-                ));
-
+        InventarioBodega inventario = inventarioBodegaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                        "No existe un inventario con el ID indicado"));
         return inventarioBodegaMapper.entityToDto(inventario);
     }
 
-    // BUSCAR POR BODEGA
     @Override
     public List<InventarioBodegaDtoResponse> buscarBodega(Long bodegaId) {
-
         if (!bodegaRepository.existsById(bodegaId)) {
-            throw new EntityNotFoundException(
-                    "La bodega indicada no existe"
-            );
+            throw new EntityNotFoundException("La bodega indicada no existe");
         }
-
-        return inventarioBodegaRepository.findByBodega_Id(bodegaId)
-                .stream()
-                .map(inventarioBodegaMapper::entityToDto)
-                .toList();
+        return inventarioBodegaRepository.findByBodega_Id(bodegaId).stream().map(inventarioBodegaMapper::entityToDto).toList();
     }
 
-    // BUSCAR POR PRODUCTO
     @Override
     public List<InventarioBodegaDtoResponse> buscarProducto(Long productoId) {
-
         if (!productoRepository.existsById(productoId)) {
-            throw new EntityNotFoundException(
-                    "El producto indicado no existe"
-            );
+            throw new EntityNotFoundException("El producto indicado no existe");
         }
-
-        return inventarioBodegaRepository.findByProducto_Id(productoId)
-                .stream()
-                .map(inventarioBodegaMapper::entityToDto)
-                .toList();
+        return inventarioBodegaRepository.findByProducto_Id(productoId).stream().map(inventarioBodegaMapper::entityToDto).toList();
     }
 
-    // BUSCAR STOCK BAJO
     @Override
     public List<InventarioBodegaDtoResponse> buscarStockBajo(Integer stock) {
-
-        return inventarioBodegaRepository.findByStockLessThan(stock)
-                .stream()
-                .map(inventarioBodegaMapper::entityToDto)
-                .toList();
+        return inventarioBodegaRepository.findByStockLessThan(stock).stream().map(inventarioBodegaMapper::entityToDto).toList();
     }
 }

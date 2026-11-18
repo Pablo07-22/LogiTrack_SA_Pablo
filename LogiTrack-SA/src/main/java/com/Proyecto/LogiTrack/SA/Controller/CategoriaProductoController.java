@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/api/categoria-producto")
 @RequiredArgsConstructor
 @Tag(name = "Categorías de productos", description = "Gestión de categorías de productos")
-@SecurityRequirement(name = "bearerAuth")
 public class CategoriaProductoController {
 
     private final CategoriaProductoService categoriaProductoService;
@@ -32,10 +31,8 @@ public class CategoriaProductoController {
             @ApiResponse(responseCode = "201", description = "Categoría creada correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
-    public ResponseEntity<CategoriaProductoDtoResponse> guardar(
-            @Valid @RequestBody CategoriaProductoDtoRequest dto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(categoriaProductoService.guardar(dto));
+    public ResponseEntity<CategoriaProductoDtoResponse> guardar(@Valid @RequestBody CategoriaProductoDtoRequest dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(categoriaProductoService.guardar(dto));
     }
 
     @GetMapping
@@ -51,9 +48,7 @@ public class CategoriaProductoController {
             @ApiResponse(responseCode = "200", description = "Categoría encontrada"),
             @ApiResponse(responseCode = "404", description = "Categoría no encontrada")
     })
-    public ResponseEntity<CategoriaProductoDtoResponse> buscar(
-            @Parameter(description = "ID de la categoría", example = "1")
-            @PathVariable Long id) {
+    public ResponseEntity<CategoriaProductoDtoResponse> buscar(@Parameter(description = "ID de la categoría", example = "1") @PathVariable Long id) {
         return ResponseEntity.ok(categoriaProductoService.buscarId(id));
     }
 
@@ -64,10 +59,7 @@ public class CategoriaProductoController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos"),
             @ApiResponse(responseCode = "404", description = "Categoría no encontrada")
     })
-    public ResponseEntity<CategoriaProductoDtoResponse> actualizar(
-            @Valid @RequestBody CategoriaProductoDtoRequest dto,
-            @Parameter(description = "ID de la categoría que se actualizara", example = "1")
-            @PathVariable Long id) {
+    public ResponseEntity<CategoriaProductoDtoResponse> actualizar(@Valid @RequestBody CategoriaProductoDtoRequest dto, @Parameter(description = "ID de la categoría que se actualizara", example = "1") @PathVariable Long id) {
         return ResponseEntity.ok(categoriaProductoService.actualizar(dto, id));
     }
 
@@ -77,9 +69,7 @@ public class CategoriaProductoController {
             @ApiResponse(responseCode = "204", description = "Categoría eliminada correctamente"),
             @ApiResponse(responseCode = "404", description = "Categoría no encontrada")
     })
-    public ResponseEntity<Void> eliminar(
-            @Parameter(description = "ID de la categoría", example = "1")
-            @PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@Parameter(description = "ID de la categoría", example = "1") @PathVariable Long id) {
         categoriaProductoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

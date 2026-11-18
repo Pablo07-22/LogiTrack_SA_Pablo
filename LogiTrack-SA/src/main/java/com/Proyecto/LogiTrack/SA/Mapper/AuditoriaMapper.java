@@ -14,11 +14,8 @@ public class AuditoriaMapper {
     }
 
     public AuditoriaDtoResponse entityToDto(Auditoria auditoria){
-
         if (auditoria == null) return null;
-        return new AuditoriaDtoResponse(auditoria.getId(),
-                auditoria.getFecha(),
-                auditoria.getTipoOperacion(),
+        return new AuditoriaDtoResponse(auditoria.getId(), auditoria.getFecha(), auditoria.getTipoOperacion(),
                 usuarioMapper.entityToResumenDto(auditoria.getUsuario()),
                 auditoria.getEntidadAfectada(),
                 auditoria.getIdRegistro(),

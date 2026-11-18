@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/api/marca")
 @RequiredArgsConstructor
 @Tag(name = "Marcas", description = "Gestión de marcas de productos")
-@SecurityRequirement(name = "bearerAuth")
 public class MarcaController {
 
     private final MarcaService marcaService;

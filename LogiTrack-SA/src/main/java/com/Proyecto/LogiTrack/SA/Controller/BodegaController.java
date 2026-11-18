@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/api/bodega")
 @RequiredArgsConstructor
 @Tag(name = "Bodegas", description = "Operaciones para crear, consultar, actualizar y eliminar bodegas")
-@SecurityRequirement(name = "bearerAuth")
 public class BodegaController {
 
     private final BodegaService bodegaService;

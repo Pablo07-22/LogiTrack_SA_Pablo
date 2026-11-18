@@ -22,7 +22,6 @@ import java.util.List;
 @RequestMapping("/api/producto")
 @RequiredArgsConstructor
 @Tag(name = "Productos", description = "Gestión y consulta de productos")
-@SecurityRequirement(name = "bearerAuth")
 public class ProductoController {
 
     private final ProductoService productoService;
