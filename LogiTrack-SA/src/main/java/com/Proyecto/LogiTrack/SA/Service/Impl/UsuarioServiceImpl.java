@@ -1,6 +1,8 @@
 package com.Proyecto.LogiTrack.SA.Service.Impl;
 
 import com.Proyecto.LogiTrack.SA.Auth.RegistroRequest;
+import com.Proyecto.LogiTrack.SA.Dto.Request.AdministradorDtoRequest;
+import com.Proyecto.LogiTrack.SA.Dto.Response.UsuarioResumenDtoResponse;
 import com.Proyecto.LogiTrack.SA.Exception.BussinesRuleException;
 import com.Proyecto.LogiTrack.SA.Exception.DatabaseRuleException;
 import com.Proyecto.LogiTrack.SA.Mapper.UsuarioMapper;
@@ -160,5 +162,43 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         usuarioRepository.delete(usuario);
     }
+
+
+    @Override
+    public UsuarioDtoResponse crearAdministrador(AdministradorDtoRequest dto) {
+
+        // Evitar que se creen dos usuarios con el mismo username.
+        if (usuarioRepository.existsByUsername(dto.username())) {
+            throw new BussinesRuleException(
+                    "Este username ya se encuentra registrado"
+            );
+        }
+
+        Usuario administrador = new Usuario();
+
+        administrador.setUsername(dto.username());
+
+        // La contraseña nunca se guarda en texto plano.
+        administrador.setPassword(
+                passwordEncoder.encode(dto.password())
+        );
+
+        // El backend asigna el rol y el estado.
+        administrador.setRol(Usuario.Rol.ADMIN);
+        administrador.setEstado(Usuario.Estado.ACTIVO);
+
+        Usuario guardado = usuarioRepository.save(administrador);
+
+        return usuarioMapper.entityToDto(guardado);
+    }
+
+    @Override
+    public List<UsuarioResumenDtoResponse> listarActivosParaMovimiento() {
+        return usuarioRepository.findByEstado(Usuario.Estado.ACTIVO)
+                .stream()
+                .map(usuarioMapper::entityToResumenDto)
+                .toList();
+    }
+
 
 }

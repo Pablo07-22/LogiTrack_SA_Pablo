@@ -20,4 +20,5 @@ public interface AuditoriaService {
 
     List<AuditoriaDtoResponse> buscarFechas(LocalDateTime fechaInicio, LocalDateTime fechaFin);
 
+    void registrar(String entidad, Long idRegistro, Auditoria.TipoOperacion tipo, Object valoresAnteriores, Object valoresNuevos);
 }
