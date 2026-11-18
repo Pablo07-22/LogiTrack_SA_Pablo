@@ -13,6 +13,8 @@ import com.Proyecto.LogiTrack.SA.Repository.BodegaRepository;
 import com.Proyecto.LogiTrack.SA.Repository.DetalleMovimientoRepository;
 import com.Proyecto.LogiTrack.SA.Repository.InventarioBodegaRepository;
 import com.Proyecto.LogiTrack.SA.Repository.MovimientoRepository;
+import com.Proyecto.LogiTrack.SA.Validaciones.Validaciones;
+import org.springframework.transaction.annotation.Transactional;
 import com.Proyecto.LogiTrack.SA.Repository.ProductoRepository;
 import com.Proyecto.LogiTrack.SA.Repository.UsuarioRepository;
 import com.Proyecto.LogiTrack.SA.Service.MovimientoService;
@@ -34,7 +36,7 @@ public class MovimientoServiceImpl implements MovimientoService {
 
     private final MovimientoMapper movimientoMapper;
     private final DetalleMovimientoMapper detalleMovimientoMapper;
-
+    private final Validaciones validaciones;
     private final MovimientoRepository movimientoRepository;
     private final DetalleMovimientoRepository detalleMovimientoRepository;
     private final InventarioBodegaRepository inventarioBodegaRepository;
@@ -43,43 +45,157 @@ public class MovimientoServiceImpl implements MovimientoService {
     private final UsuarioRepository usuarioRepository;
 
     @Override
-    public MovimientoDtoResponse guardar(MovimientoDtoRequest dto){
-        Usuario usuario = usuarioRepository.findById(dto.usuarioResponsableId()).orElseThrow(() -> new EntityNotFoundException("El usuario responsable no existe"));
-        if (usuario.getEstado() != Usuario.Estado.ACTIVO) {throw new BussinesRuleException("El usuario responsable no se encuentra activo");}
+    @Transactional
+    public MovimientoDtoResponse guardar(MovimientoDtoRequest dto) {
+
+        Usuario usuario = usuarioRepository.findById(dto.usuarioResponsableId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "El usuario responsable no existe"
+                ));
+
+        if (usuario.getEstado() != Usuario.Estado.ACTIVO) {
+            throw new BussinesRuleException(
+                    "El usuario responsable no se encuentra activo"
+            );
+        }
+
         Bodega origen = null;
         Bodega destino = null;
-        if (dto.bodegaOrigenId() != null) {origen = bodegaRepository.findById(dto.bodegaOrigenId()).orElseThrow(() -> new EntityNotFoundException("La bodega de origen no existe"));}
-        if (dto.bodegaDestinoId() != null) {destino = bodegaRepository.findById(dto.bodegaDestinoId()).orElseThrow(() -> new EntityNotFoundException("La bodega de destino no existe"));}
+
+        if (dto.bodegaOrigenId() != null) {
+            origen = bodegaRepository.findById(dto.bodegaOrigenId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "La bodega de origen no existe"
+                    ));
+        }
+
+        if (dto.bodegaDestinoId() != null) {
+            destino = bodegaRepository.findById(dto.bodegaDestinoId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "La bodega de destino no existe"
+                    ));
+        }
+
         validarTipoMovimiento(dto.tipoMovimiento(), origen, destino);
-        // Evitar que un mismo producto se repita en el movimiento.
+
+        // Evitar que un mismo producto se repita.
         Set<Long> productosRegistrados = new HashSet<>();
+
+        // Calcular las unidades totales que ingresarán al destino.
+        long unidadesAIngresar = 0;
+
         for (DetalleMovimientoDtoRequest detalle : dto.detalles()) {
-            if (!productosRegistrados.add(detalle.productoId())) {throw new BussinesRuleException("No se puede repetir un producto dentro del mismo movimiento");}
-            Producto producto = productoRepository.findById(detalle.productoId()).orElseThrow(() -> new EntityNotFoundException("No existe el producto con ID: " + detalle.productoId()));
-            if (dto.tipoMovimiento() == Movimiento.TipoMovimiento.ENTRADA) {InventarioBodega inventarioDestino = obtenerOCrearInventario(destino, producto);
-                inventarioDestino.setStock(inventarioDestino.getStock() + detalle.cantidad());inventarioBodegaRepository.save(inventarioDestino);
+
+            if (detalle.cantidad() == null || detalle.cantidad() <= 0) {
+                throw new BussinesRuleException(
+                        "La cantidad de cada producto debe ser mayor que cero"
+                );
             }
-            else if (dto.tipoMovimiento() == Movimiento.TipoMovimiento.SALIDA) {InventarioBodega inventarioOrigen = buscarInventario(origen, producto);
+
+            if (!productosRegistrados.add(detalle.productoId())) {
+                throw new BussinesRuleException(
+                        "No se puede repetir un producto dentro del mismo movimiento"
+                );
+            }
+
+            unidadesAIngresar = Math.addExact(
+                    unidadesAIngresar,
+                    detalle.cantidad().longValue()
+            );
+        }
+
+        // Validar capacidad antes de modificar cualquier inventario.
+        if (dto.tipoMovimiento() == Movimiento.TipoMovimiento.ENTRADA
+                || dto.tipoMovimiento() == Movimiento.TipoMovimiento.TRANSFERENCIA) {
+
+            validaciones.validarCapacidadDisponible(
+                    destino,
+                    unidadesAIngresar
+            );
+        }
+
+        // Procesar los productos del movimiento.
+        for (DetalleMovimientoDtoRequest detalle : dto.detalles()) {
+
+            Producto producto = productoRepository.findById(detalle.productoId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "No existe el producto con ID: " + detalle.productoId()
+                    ));
+
+            if (dto.tipoMovimiento() == Movimiento.TipoMovimiento.ENTRADA) {
+
+                InventarioBodega inventarioDestino =
+                        obtenerOCrearInventario(destino, producto);
+
+                inventarioDestino.setStock(
+                        inventarioDestino.getStock() + detalle.cantidad()
+                );
+
+                inventarioBodegaRepository.save(inventarioDestino);
+            }
+
+            else if (dto.tipoMovimiento() == Movimiento.TipoMovimiento.SALIDA) {
+
+                InventarioBodega inventarioOrigen =
+                        buscarInventario(origen, producto);
+
                 validarStock(inventarioOrigen, detalle.cantidad());
-                inventarioOrigen.setStock(inventarioOrigen.getStock() - detalle.cantidad());
+
+                inventarioOrigen.setStock(
+                        inventarioOrigen.getStock() - detalle.cantidad()
+                );
+
                 inventarioBodegaRepository.save(inventarioOrigen);
             }
-            else if (dto.tipoMovimiento() == Movimiento.TipoMovimiento.TRANSFERENCIA) {InventarioBodega inventarioOrigen = buscarInventario(origen, producto);
+
+            else if (dto.tipoMovimiento() == Movimiento.TipoMovimiento.TRANSFERENCIA) {
+
+                InventarioBodega inventarioOrigen =
+                        buscarInventario(origen, producto);
+
                 validarStock(inventarioOrigen, detalle.cantidad());
-                InventarioBodega inventarioDestino = obtenerOCrearInventario(destino, producto);
-                inventarioOrigen.setStock(inventarioOrigen.getStock() - detalle.cantidad());
-                inventarioDestino.setStock(inventarioDestino.getStock() + detalle.cantidad());
+
+                InventarioBodega inventarioDestino =
+                        obtenerOCrearInventario(destino, producto);
+
+                inventarioOrigen.setStock(
+                        inventarioOrigen.getStock() - detalle.cantidad()
+                );
+
+                inventarioDestino.setStock(
+                        inventarioDestino.getStock() + detalle.cantidad()
+                );
+
                 inventarioBodegaRepository.save(inventarioOrigen);
                 inventarioBodegaRepository.save(inventarioDestino);
             }
         }
-        Movimiento movimiento = movimientoMapper.DtoToEntity(dto, usuario, origen, destino);
-        Movimiento movimientoGuardado = movimientoRepository.save(movimiento);
+
+        // Registrar el movimiento.
+        Movimiento movimiento =
+                movimientoMapper.DtoToEntity(dto, usuario, origen, destino);
+
+        Movimiento movimientoGuardado =
+                movimientoRepository.save(movimiento);
+
+        // Registrar los detalles del movimiento.
         for (DetalleMovimientoDtoRequest detalleDto : dto.detalles()) {
-            Producto producto = productoRepository.findById(detalleDto.productoId()).orElseThrow(() -> new EntityNotFoundException("El producto no existe"));
-            DetalleMovimiento detalle = detalleMovimientoMapper.DtoToEntity(detalleDto, movimientoGuardado, producto);
+
+            Producto producto = productoRepository.findById(detalleDto.productoId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "El producto no existe"
+                    ));
+
+            DetalleMovimiento detalle =
+                    detalleMovimientoMapper.DtoToEntity(
+                            detalleDto,
+                            movimientoGuardado,
+                            producto
+                    );
+
             detalleMovimientoRepository.save(detalle);
         }
+
         return movimientoMapper.entityToDto(movimientoGuardado);
     }
 

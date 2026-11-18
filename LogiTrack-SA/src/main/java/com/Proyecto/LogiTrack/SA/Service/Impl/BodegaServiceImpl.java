@@ -13,6 +13,7 @@ import com.Proyecto.LogiTrack.SA.Repository.InventarioBodegaRepository;
 import com.Proyecto.LogiTrack.SA.Repository.MovimientoRepository;
 import com.Proyecto.LogiTrack.SA.Repository.UsuarioRepository;
 import com.Proyecto.LogiTrack.SA.Service.AuditoriaService;
+import com.Proyecto.LogiTrack.SA.Validaciones.Validaciones;
 import com.Proyecto.LogiTrack.SA.Service.BodegaService;
 import com.Proyecto.LogiTrack.SA.Dto.Request.BodegaDtoRequest;
 import com.Proyecto.LogiTrack.SA.Dto.Response.BodegaDtoResponse;
@@ -37,6 +38,7 @@ public class BodegaServiceImpl implements BodegaService {
     private final CiudadRepository ciudadRepository;
     private final UsuarioRepository usuarioRepository;
     private final InventarioBodegaRepository inventarioBodegaRepository;
+    private final Validaciones validaciones;
     private final MovimientoRepository movimientoRepository;
     private final AuditoriaService auditoriaService;
 
@@ -106,6 +108,13 @@ public class BodegaServiceImpl implements BodegaService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "El usuario encargado no existe"
                 ));
+
+        // Validar que la nueva capacidad no sea inferior
+        // al inventario que actualmente tiene la bodega.
+        validaciones.validarCapacidadAlActualizarBodega(
+                bodega,
+                dto.capacidad()
+        );
 
         bodegaMapper.updateEntityFromDto(
                 bodega, dto, ciudad, encargado
