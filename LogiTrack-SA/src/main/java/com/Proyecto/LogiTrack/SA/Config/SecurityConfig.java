@@ -39,11 +39,11 @@ public class SecurityConfig {
 
                         // Solo ADMIN
                                 // Consulta limitada de usuarios activos para registrar movimientos.
-// Disponible para ADMIN y EMPLEADO autenticados.
+                                // Disponible para ADMIN y EMPLEADO autenticados.
                                 .requestMatchers(HttpMethod.GET, "/api/usuario/activos")
                                 .hasAnyRole("ADMIN", "EMPLEADO")
 
-// Solo ADMIN para el resto de la gestión de usuarios.
+                                // Solo ADMIN para el resto de la gestión de usuarios.
                                 .requestMatchers("/api/usuario/**").hasRole("ADMIN")
                                 .requestMatchers("/api/auditoria/**").hasRole("ADMIN")
                         // Registrar movimientos: ADMIN y EMPLEADO
